@@ -28,6 +28,10 @@ The result will be a long series of cypher queries, which when executed, will cr
 tree.  This output can then be piped to ```neo4j-shell``` or to other scripts which can run the cypher
 against the REST API on another machine.
 
+If no file arguments are provided, ```xml2neo.py``` will read data from ```STDIN```, meaning it can be used
+as part of pipelines.  A common use would be to fetch XML from a server via curl, and then feed that straight
+to the script.
+
 ## Graph Model
 
 Because the tool does not necessarily know anything about the XML before it begins, it creates a fairly 
