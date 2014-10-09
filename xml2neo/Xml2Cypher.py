@@ -16,6 +16,8 @@ class Xml2Cypher:
         self.counter = 0
         self.queries = []
 
+        self.STRIP_WHITESPACE = True
+
     def getId(self):
         self.counter = self.counter + 1
         _id = "_%d" % self.counter
@@ -87,7 +89,10 @@ class Xml2Cypher:
         # Add the elements text as a property, if appropriate
         t = element.text
         if t is not None:
-            props["_text"] = t.strip()
+            if self.STRIP_WHITESPACE:
+                t = t.strip()
+            if t != "":
+                props["_text"] = t
 
         labels = [tagName, "XmlElement"]
         if treeLabel == [0]: labels.append("RootElement")
