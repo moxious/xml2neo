@@ -77,7 +77,7 @@ USAGE
         # parser.add_argument("-i", "--include", dest="include", help="only include paths matching this regex pattern. Note: exclude is given preference over include. [default: %(default)s]", metavar="RE" )
         # parser.add_argument("-e", "--exclude", dest="exclude", help="exclude paths matching this regex pattern. [default: %(default)s]", metavar="RE" )
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
-        parser.add_argument(dest="paths", help="paths to folder(s) with source file(s) [default: %(default)s]", metavar="path", nargs='+')
+        parser.add_argument(dest="paths", help="paths to folder(s) with source file(s) [default: %(default)s]", metavar="path", nargs='*')
                             #help="paths to file(s) [default: %(default)s]", metavar="path", nargs="+")
 
         # Process arguments        
@@ -99,11 +99,14 @@ USAGE
         # if inpat and expat and inpat == expat:
         #     raise CLIError("include and exclude pattern are equal! Nothing will be processed.")
 
-        for inpath in paths:
-            ### do something with inpath ###
-            fp = open(inpath, mode="rb")
-            xml2neo.Xml2Cypher.Xml2Cypher().convert(fp)
-            fp.close()            
+        if len(paths) > 0:
+            for inpath in paths:
+                ### do something with inpath ###
+                fp = open(inpath, mode="rb")
+                xml2neo.Xml2Cypher.Xml2Cypher().convert(fp)
+                fp.close()
+        else:
+            xml2neo.Xml2Cypher.Xml2Cypher().convert(sys.stdin)            
             
         return 0
     except KeyboardInterrupt:
