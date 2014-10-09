@@ -36,3 +36,8 @@ general tree that mimicks the XML's structure.  In particular, it creates many n
 * All nodes are assigned a generated ```_uuid``` property, and a ```_label``` property that corresponds to 
 the XML element's tag name.
 * XML attributes become node properties, so ```<foo bar='baz'/>``` will become ```(n:XmlElement:foo {bar: 'baz'})```.
+
+## Limitations
+
+Currently, the XML processing uses python's ```etree.ElementTree``` - as such the XML document you are
+processing must be able to fit into memory.   Very large documents are not yet supported.
