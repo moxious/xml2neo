@@ -76,6 +76,29 @@ return t._text as title, d._text as description, b.id as bookID;
 We first match on the title, then use relationships to find the ```book``` element, and its other
 ```description``` child.  The text in that node gives us a description of this book. 
 
+### Aggregating bits of the tree
+
+By understanding the structure of this simple XML file, it becomes relatively easy to build a list
+of all book genres mentioned in the sample data:
+
+```
+match (b:book:XmlElement)-[:contains]->(t:title:XmlElement),
+      (b)-[:contains]->(g:genre:XmlElement)
+return distinct(g._text);
+
++-------------------+
+| (g._text)         |
++-------------------+
+| "Computer"        |
+| "Fantasy"         |
+| "Romance"         |
+| "Horror"          |
+| "Science Fiction" |
++-------------------+
+```
+
+### Path Expressions 
+
 We can also use XPath like expressions by using the ```path``` attribute:
 
 ```
