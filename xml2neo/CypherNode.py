@@ -9,14 +9,24 @@ import uuid
 
 """A simple class that contains information about what can be created/matched as a node in Cypher"""
 class CypherNode:
-    def __init__(self, nodeID, labels, props={}):
+    def __init__(self, nodeID, labels, props={}, matchBy="_uuid"):
         if nodeID is None or labels is None or len(labels) == 0:
             raise Exception, "CypherNodes must have a valid nodeID and more than zero labels"
                 
         self.nid = nodeID
         self.labels = labels
         self.props = props
-        self.props["_uuid"] = str(uuid.uuid4())
+        self.matchBy = matchBy
+        
+        if matchBy != "_uuid" and not self.props.has_key(self.matchBy):
+            raise Exception, "CypherNode matchBy field '%s' cannot be used because properties do not include that" % self.matchBy
+                
+        if matchBy == "_uuid":
+            self.props["_uuid"] = str(uuid.uuid4())
+        else:
+            # generate a UUID based on the match field.   
+            # This guarantees the same UUID for a given match field value.
+            self.props["_uuid"] = str(uuid.uuid5(uuid.NAMESPACE_X500, str(self.props[self.matchBy])))                    
         
     def getNodeID(self): return self.nid
         
@@ -34,8 +44,8 @@ class CypherNode:
         
     def toSimpleMatchSyntax(self):
         """Matching a node only requires matching on the UUID, not everything"""
-        labelStr = ":".join(map(lambda e: "`%s`" % e, self.labels))
-        return "(%s:%s {_uuid:'%s'})" % (self.getNodeID(), labelStr, self.props["_uuid"])
+        labelStr = ":".join(map(lambda e: "`%s`" % e, self.labels))        
+        return "(%s:%s {`%s`:%s})" % (self.getNodeID(), labelStr, self.matchBy, self.formatValue(self.props[self.matchBy]))
         
     def toNodeCypherSyntax(self):
         # Labels should look like:  `foo`:`bar`:`baz`
@@ -46,7 +56,7 @@ class CypherNode:
     
     def formatValue(self, val):
         def translate(s):
-            return s.replace("\\", "\\\\").replace("'", "\\'");
+            return s.replace("\\", "\\\\").replace("'", "\\'")
         
         if isinstance(val, list):
             return "[%s]" % ", ".join(map(lambda e: self.formatValue(e), val))
