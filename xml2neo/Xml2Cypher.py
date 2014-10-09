@@ -6,18 +6,14 @@
 import sys
 # import xml.etree.cElementTree as etree
 import xml.etree.ElementTree as ET
-from xml2neo.Statement import Statement
 from xml2neo.CypherNode import CypherNode
 from xml2neo.CypherRelationship import CypherRelationship
 from xml2neo.CypherQuery import CypherQuery
-from numbers import Number
 import re
 
 class Xml2Cypher:
     def __init__(self):
         self.counter = 0
-        # Map namespace URIs to cypher node IDs.
-        self.nsMap = {}
         self.queries = []
 
     def getId(self):
@@ -47,56 +43,22 @@ class Xml2Cypher:
         return
 
     def getNamespaceCypherNodeByURI(self, uri):
-        cnode = CypherNode(nodeID=self.getId(), labels=['Namespace'], props={"uri":uri})
+        cnode = CypherNode(nodeID=self.getId(), labels=['Namespace'], props={"uri":uri}, matchBy="uri")
         return cnode
 
-    def getNamespaceNodeIdByURI(self, uri):
-        try:
-            return self.nsMap[uri]
-        except KeyError:
-            nid = self.getId()
-            self.nsMap[uri] = nid
-            
-            cnode = CypherNode(nid, labels=['Namespace'], props={ "uri" : uri })
-            #self.statements.append(Statement("(%s:Namespace {uri: %s})" % 
-            #                                 (nid, self.formatValue(uri)),
-            #                                 stmtType="MERGE"))
-            self.statements.append(cnode.mergeStatement())
-            return nid
-
     def convertNamespaces(self, nsMap):
+        """Looks at a namespace map, and adds queries to merge those namespaces in as new nodes"""
         for key in nsMap.keys():
             nid = self.getId()
-            cnode = CypherNode(nid, labels=['Namespace'], props={"prefix" : nsMap[key], "uri" : key })
+            cnode = CypherNode(nid, labels=['Namespace'], props={"prefix" : nsMap[key], "uri" : key }, matchBy="uri")
                         
             self.queries.append(CypherQuery([cnode.mergeStatement()]))
 
         return True
 
-    def formatValue(self, val):
-        def translate(s):
-            return s.replace("\\", "\\\\").replace("'", "\\'");
-
-        if isinstance(val, bool):
-            return unicode(str(val), "utf-8").lower()
-        elif isinstance(val, Number):
-            v = "'%s'" % translate(val)
-            if isinstance(v, unicode): return v
-            else: return unicode(v, "utf-8")
-        else: 
-            v = "'%s'" % translate(val)
-            if isinstance(v, unicode): return v
-            else: return unicode(v, "utf-8")
-
-    def formatProperties(self, props):
-        s = []
-        for key in props.keys():
-            s.append("`%s`: %s" % (unicode(key,"utf-8"), 
-                                   self.formatValue(props[key])))
-
-        return ", ".join(s).encode("utf-8")
-
     def tagNameParts(self, tok):
+        """Given an element tree token such as '{http://foo.com/}bar' returns
+        a tuple with the namespace and tag name ('http://foo.com/', 'bar')"""
         try:
             tok.index("{")
             m = re.search("\{(.+)\}(.+)", tok)
@@ -105,6 +67,8 @@ class Xml2Cypher:
             return ("", tok)
 
     def elementToCypher(self, element, treeLabel=None):
+        """Convert an XML element (recursively) into a set of Cypher queries, which are added
+        to self.queries"""
         nodeId = self.getId()
 
         if treeLabel is None:
@@ -125,15 +89,6 @@ class Xml2Cypher:
         if t is not None:
             props["_text"] = t.strip()
 
-        # rootLabel = ""        
-        # When the tree label is the 0th item, that's the root.
-        # if treeLabel == [0]: rootLabel = ":RootElement"
-
-        # Cypher; create an element labeled (tag name) and XMLElement,
-        # with the specified properties.
-        #s = "(%s:`%s`:XMLElement%s {%s})" % (nodeId, tagName, rootLabel,
-        #                                     self.formatProperties(props))
-        #statements.append(Statement(s, stmtType="CREATE"))
         labels = [tagName, "XmlElement"]
         if treeLabel == [0]: labels.append("RootElement")
         if len(element) == 0: labels.append("LeafElement")
@@ -151,7 +106,7 @@ class Xml2Cypher:
             nsNode = self.getNamespaceCypherNodeByURI(uri)
             
             # Add a query to assert a namespace relationship here.            
-            self.queries.append(CypherQuery([nsNode.matchStatement(), 
+            self.queries.append(CypherQuery([nsNode.mergeStatement(), 
                                              cnode.matchStatement(),
                                              CypherRelationship(cnode, nsNode, "namespace", props={}).createStatement()]))
 
@@ -172,20 +127,3 @@ class Xml2Cypher:
         treeLabel.pop()
 
         return cnode
-
-def main(args):
-    if len(args) > 0:
-        for arg in args:
-            #try:
-            fp = open(arg, mode="rb")
-            Xml2Cypher().convert(fp)
-            fp.close()
-            #except Exception as e:
-            #    raise Exception("Error processing %s: %s" % (arg, e))
-                # sys.stderr.write("Failed to process %s: %s" % (arg, e))
-                # sys.stderr.flush()
-    else:
-        Xml2Cypher().convert(sys.stdin)
-
-if  __name__ =='__main__': 
-    main(sys.argv[1:])
