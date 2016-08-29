@@ -30,7 +30,7 @@ class CypherQuery:
         queryOrder = ['MATCH', 'MERGE', 'CREATE']
                 
         if len(self.statementMap.keys()) == 0:
-            raise Exception, "Cannot turn an empty cypher query into a string"
+            raise Exception("Cannot turn an empty cypher query into a string")
                 
         strbuf = ""
         

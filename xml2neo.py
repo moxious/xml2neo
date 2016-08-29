@@ -89,7 +89,7 @@ USAGE
         # inpat = args.include
         # expat = args.exclude
 
-        if verbose > 0:
+        if verbose:
             print("Verbose mode on")
             #if recurse:
             #    print("Recursive mode on")

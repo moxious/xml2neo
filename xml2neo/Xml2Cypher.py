@@ -38,9 +38,9 @@ class Xml2Cypher:
             # After processing, all queries are accumulated here.
             for z in range(0, len(self.queries)):
                 # print "/* QUERY %d */" % z
-                print "%s" % str(self.queries[z])
+                print (str(self.queries[z]))
 
-        except ET.ParseError, e:
+        except ET.ParseError as e:
             sys.stderr.write("Unable to parse XML stream: %s (skipped)" % e)
         return
 
@@ -74,7 +74,7 @@ class Xml2Cypher:
         nodeId = self.getId()
 
         if treeLabel is None:
-            raise Exception, "Missing tree labels are not permitted."
+            raise Exception("Missing tree labels are not permitted.")
 
         # Properties of the node to log, starting with root status.
         props = { "_path" : treeLabel }
@@ -99,7 +99,7 @@ class Xml2Cypher:
         if len(element) == 0: labels.append("LeafElement")
 
         # Put the tag name in as the label.         
-        if not props.has_key("label"):
+        if not "label" in props:
             props["label"] = tagName
         
         cnode = CypherNode(nodeId, labels=labels, props=props)
