@@ -11,15 +11,15 @@ import uuid
 class CypherNode:
     def __init__(self, nodeID, labels, props={}, matchBy="_uuid"):
         if nodeID is None or labels is None or len(labels) == 0:
-            raise Exception, "CypherNodes must have a valid nodeID and more than zero labels"
+            raise Exception("CypherNodes must have a valid nodeID and more than zero labels")
                 
         self.nid = nodeID
         self.labels = labels
         self.props = props
         self.matchBy = matchBy
         
-        if matchBy != "_uuid" and not self.props.has_key(self.matchBy):
-            raise Exception, "CypherNode matchBy field '%s' cannot be used because properties do not include that" % self.matchBy
+        if matchBy != "_uuid" and not self.matchBy in self.props:
+            raise Exception("CypherNode matchBy field '%s' cannot be used because properties do not include that" % self.matchBy)
                 
         if matchBy == "_uuid":
             self.props["_uuid"] = str(uuid.uuid4())
@@ -61,19 +61,18 @@ class CypherNode:
         if isinstance(val, list):
             return "[%s]" % ", ".join(map(lambda e: self.formatValue(e), val))
         elif isinstance(val, bool):            
-            return unicode(str(val), "utf-8").lower()
+            return str(val, "utf-8").lower()
         elif isinstance(val, Number):        
             v = "%s" % str(val)            
-            return unicode(v, "utf-8")
+            return v
         else: 
             v = "'%s'" % translate(val)
-            if isinstance(v, unicode): return v
-            else: return unicode(v, "utf-8")
+            if isinstance(v, str): return v
+            else: return str(v, "utf-8")
 
     def formatProperties(self, props):
         s = []
         for key in props.keys():
-            s.append("`%s`: %s" % (unicode(key,"utf-8"), 
-                                   self.formatValue(props[key])))
+            s.append("`%s`: %s" % (key, self.formatValue(props[key])))
 
         return ", ".join(s).encode("utf-8")    

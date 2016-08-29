@@ -14,10 +14,10 @@ class CypherRelationship:
         self.props = props
         
         if not isinstance(self.head, CypherNode):
-            raise Exception, "Head must be a CypherNode"
+            raise Exception("Head must be a CypherNode")
     
         if not isinstance(self.tail, CypherNode):
-            raise Exception, "Tail must be a CypherNode"
+            raise Exception("Tail must be a CypherNode")
         
     def toRelCypherSyntax(self):
         return "(%s)-[r:`%s`]->(%s)" % (self.head.getNodeID(), self.relType, self.tail.getNodeID())
