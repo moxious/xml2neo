@@ -75,4 +75,4 @@ class CypherNode:
         for key in props.keys():
             s.append("`%s`: %s" % (key, self.formatValue(props[key])))
 
-        return ", ".join(s).encode("utf-8")    
+        return ", ".join(s)
